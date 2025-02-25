@@ -28,7 +28,7 @@ func main() {
 		log.Fatalf("error opening file: %v", err)
 	}
 	defer file.Close()
-	token := os.Getenv("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")
+	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		log.Fatal("GITHUB_TOKEN environment variable is not set")
 	}
@@ -47,7 +47,7 @@ func main() {
 		if username == "" {
 			continue
 		} // Prepare invitation options for each email.
-		inviteOptions := &github.OrganizationInvitationOptions{
+		inviteOptions := &github.CreateOrgInvitationOptions{
 			username: github.String(username),
 			Role:     github.String("direct_member"), // Change to "admin" if needed.
 		}
