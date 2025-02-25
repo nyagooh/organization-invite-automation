@@ -7,11 +7,14 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/google/go-github/v53/github"
+	"golang.org/x/oauth2"
 )
 
 func main() {
 	// Define command-line flags.
-	var org, filePath string
+	var org, filepath string
 	args := os.Args[1:]
 	if len(args) < 1 || len(args) > 2 {
 		log.Fatalf("Usage: %s <github_organization_name> <file_path>", os.Args[0])
