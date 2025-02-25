@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"log"
 	"os"
 	"strings"
@@ -16,19 +17,31 @@ func main() {
 	}
 	org = args[0]
 	filepath = args[2]
+
 	//takesgithub organization name
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
 	}
 	defer file.Close()
+	token := os.Getenv("GITHUB_TOKEN")
+	if token == "" {
+		log.Fatal("GITHUB_TOKEN environment variable is not set")
+	}
 
+	// Set up OAuth2 authentication.
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+	tc := oauth2.NewClient(ctx, ts)
+
+	// Create a GitHub client.
+	client := github.NewClient(tc)
 	// Read the file line by line.
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		username := strings.TrimSpace(scanner.Text())
 		if username == "" {
-			continue // Skip empty lines.
+			continue
 		}
 
 	}
