@@ -9,11 +9,16 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v53/github"
+	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 )
 
 func main() {
 	// Define command-line flags.
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found or error loading it; proceeding with system environment variables")
+	}
 	var org, filepath string
 	args := os.Args[1:]
 	if len(args) < 1 || len(args) > 2 {
