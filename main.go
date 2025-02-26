@@ -47,9 +47,16 @@ func main() {
 		if username == "" {
 			continue
 		} // Prepare invitation options for each email.
+		user, _, err := client.Users.Get(ctx, username)
+		if err != nil {
+			log.Printf("Error fetching user %s: %v", username, err)
+			continue
+		}
+
+		// Step 2: Use the user's ID to invite
 		inviteOptions := &github.CreateOrgInvitationOptions{
-			username: github.String(username),
-			Role:     github.String("direct_member"), // Change to "admin" if needed.
+			InviteeID: user.ID, // Correct field for GitHub user ID
+			Role:      github.String("direct_member"),
 		}
 
 		// Send the invitation.
