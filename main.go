@@ -20,7 +20,7 @@ func main() {
 		log.Fatalf("Usage: %s <github_organization_name> <file_path>", os.Args[0])
 	}
 	org = args[0]
-	filepath = args[2]
+	filepath = args[1]
 
 	//takesgithub organization name
 	file, err := os.Open(filepath)
