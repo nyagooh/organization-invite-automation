@@ -53,7 +53,7 @@ func main() {
 		}
 
 		// Send the invitation.
-		invitation, resp, err := client.Organizations.CreateInvitation(ctx, org, inviteOptions)
+		invitation, resp, err := client.Organizations.CreateOrgInvitation(ctx, org, inviteOptions)
 		if err != nil {
 			log.Printf("error sending invitation to %s: %v (HTTP status: %d)", username, err, resp.StatusCode)
 			continue
