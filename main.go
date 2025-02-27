@@ -62,28 +62,14 @@ func main() {
 			fmt.Printf("Skipping %s: already a member or invitation pending\n", username)
 			continue
 		}
-		user, _, err := client.Users.Get(ctx, username)
-		if err != nil {
-			log.Printf("Error fetching user %s: %v", username, err)
+
+		if err := m.InviteUser(ctx, client, org, username); err != nil {
+			log.Printf("error inviting %s: %v", username, err)
 			continue
 		}
-
-		inviteOptions := &github.CreateOrgInvitationOptions{
-			InviteeID: user.ID,
-			Role:      github.String("direct_member"),
-		}
-
-		invitation, resp, err := client.Organizations.CreateOrgInvitation(ctx, org, inviteOptions)
-		if err != nil {
-			log.Printf("error sending invitation to %s: %v (HTTP status: %d)", username, err, resp.StatusCode)
-			continue
-		}
-
-		fmt.Printf("Invitation sent to %s (Invitation ID: %d)\n", username, *invitation.ID)
-
-		if err := scanner.Err(); err != nil {
-			log.Fatalf("error reading file: %v", err)
-		}
-
+		
 	}
+	if err := scanner.Err(); err != nil {
+		log.Fatalf("error reading file: %v", err)
+}
 }
