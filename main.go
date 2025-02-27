@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
-	m "org/utils"
+	m "org/Utils"
 
 	"github.com/google/go-github/v53/github"
 	"github.com/joho/godotenv"
