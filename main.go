@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	m "org/utils"
 
 	"github.com/google/go-github/v53/github"
 	"github.com/joho/godotenv"
@@ -52,7 +53,7 @@ func main() {
 		if username == "" {
 			continue
 		} 
-		shouldInvite, err := shouldInviteUser(ctx, client, org, username)
+		shouldInvite, err := m.ShouldInviteUser(ctx, client, org, username)
 		if err != nil {
 			log.Printf("error checking invitation status for %s: %v", username, err)
 			continue
@@ -85,26 +86,4 @@ func main() {
 		}
 
 	}
-}
-
-func shouldInviteUser(ctx context.Context, client *github.Client, org, username string) (bool, error) {
-	isMember, _, err := client.Organizations.IsMember(ctx, org, username)
-	if err != nil {
-		return false, fmt.Errorf("error checking membership for %s: %v", username, err)
-	}
-	if isMember {
-		return false, nil
-	}
-
-	invitations, _, err := client.Organizations.ListPendingOrgInvitations(ctx, org, nil)
-	if err != nil {
-		return false, fmt.Errorf("error listing pending invitations for organization %s: %v", org, err)
-	}
-
-	for _, invite := range invitations {
-		if invite != nil && strings.EqualFold(invite.GetLogin(), username) {
-			return false, nil
-		}
-	}
-	return true, nil
 }
