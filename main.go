@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	// Define command-line flags.
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("No .env file found or error loading it; proceeding with system environment variables")
@@ -27,7 +27,7 @@ func main() {
 	org = args[0]
 	filepath = args[1]
 
-	//takesgithub organization name
+
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatalf("error opening file: %v", err)
@@ -38,33 +38,40 @@ func main() {
 		log.Fatal("GITHUB_TOKEN environment variable is not set")
 	}
 
-	// Set up OAuth2 authentication.
+
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	tc := oauth2.NewClient(ctx, ts)
 
-	// Create a GitHub client.
+	
 	client := github.NewClient(tc)
-	// Read the file line by line.
+	
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		username := strings.TrimSpace(scanner.Text())
 		if username == "" {
 			continue
-		} // Prepare invitation options for each email.
+		} 
+		shouldInvite, err := shouldInviteUser(ctx, client, org, username)
+		if err != nil {
+			log.Printf("error checking invitation status for %s: %v", username, err)
+			continue
+		}
+		if !shouldInvite {
+			fmt.Printf("Skipping %s: already a member or invitation pending\n", username)
+			continue
+		}
 		user, _, err := client.Users.Get(ctx, username)
 		if err != nil {
 			log.Printf("Error fetching user %s: %v", username, err)
 			continue
 		}
 
-		// Step 2: Use the user's ID to invite
 		inviteOptions := &github.CreateOrgInvitationOptions{
-			InviteeID: user.ID, // Correct field for GitHub user ID
+			InviteeID: user.ID,
 			Role:      github.String("direct_member"),
 		}
 
-		// Send the invitation.
 		invitation, resp, err := client.Organizations.CreateOrgInvitation(ctx, org, inviteOptions)
 		if err != nil {
 			log.Printf("error sending invitation to %s: %v (HTTP status: %d)", username, err, resp.StatusCode)
@@ -73,10 +80,31 @@ func main() {
 
 		fmt.Printf("Invitation sent to %s (Invitation ID: %d)\n", username, *invitation.ID)
 
-		// Check for any scanning error.
 		if err := scanner.Err(); err != nil {
 			log.Fatalf("error reading file: %v", err)
 		}
 
 	}
+}
+
+func shouldInviteUser(ctx context.Context, client *github.Client, org, username string) (bool, error) {
+	isMember, _, err := client.Organizations.IsMember(ctx, org, username)
+	if err != nil {
+		return false, fmt.Errorf("error checking membership for %s: %v", username, err)
+	}
+	if isMember {
+		return false, nil
+	}
+
+	invitations, _, err := client.Organizations.ListPendingOrgInvitations(ctx, org, nil)
+	if err != nil {
+		return false, fmt.Errorf("error listing pending invitations for organization %s: %v", org, err)
+	}
+
+	for _, invite := range invitations {
+		if invite != nil && strings.EqualFold(invite.GetLogin(), username) {
+			return false, nil
+		}
+	}
+	return true, nil
 }
